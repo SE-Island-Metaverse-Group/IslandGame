@@ -1,0 +1,9 @@
+.vs
+Binaries/
+DerivedDataCache/
+Saved/
+Intermediate/
+
+!Intermediate/Config
+!Intermediate/ProjectFiles
+!Intermediate/TargetInfo.json
