@@ -1,0 +1,16 @@
+body {
+    overflow: hidden;
+}
+
+::-webkit-scrollbar {
+    width: 0px;
+}
+
+canvas {
+    margin: auto;
+}
+
+@font-face {
+    font-family: Ubuntu;
+    src: url('res/fonts/Ubuntu-R.ttf');
+}

@@ -1,0 +1,24 @@
+body {
+    overflow: hidden;
+    background-color: #eee8d6;
+}
+
+::-webkit-scrollbar {
+    width: 0px;
+}
+
+#gold_miner_button {
+    display: block;
+    width: 40%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 50px;
+}
+
+#fisher_man_button {
+    display: block;
+    width: 43%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+}
