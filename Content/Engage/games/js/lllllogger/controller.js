@@ -4,7 +4,7 @@ document.body.onkeydown = function(e) {
     };
     if (typeof keys[e.keyCode] != 'undefined') {
         if (keys[e.keyCode] == 'down') {
-            fingerStrectch();
+            cutterStrectch();
         }
     }
 };

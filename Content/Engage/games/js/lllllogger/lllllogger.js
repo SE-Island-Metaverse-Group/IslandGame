@@ -1,4 +1,4 @@
-var ctx = document.getElementById('gold').getContext('2d');
+var ctx = document.getElementById('game').getContext('2d');
 var maxLoadProgress = 0;
 
 function registerImageResource(imagePath, onLoadCallback) {
@@ -16,7 +16,8 @@ var loadProgress = 0;
 var increaseProgress = function() { ++loadProgress; }
 var bg = registerImageResource("res/textures/GoldMiner/bg.png", increaseProgress);
 var goldImg = registerImageResource("res/textures/GoldMiner/Au.png", increaseProgress);
-var fingerImg = registerImageResource("res/textures/GoldMiner/finger.png", increaseProgress);
+var treeImg = registerImageResource("res/textures/LLLLLogger/tree.png", increaseProgress);
+var cutterImg = registerImageResource("res/textures/LLLLLogger/cutter.png", increaseProgress);
 
 // ======== < Interval Settings > ========
 
@@ -38,25 +39,33 @@ function clearAllInterval() {
 // Window
 var width = window.innerWidth - 15;
 var height = window.innerHeight - 15;
-document.getElementById('gold').setAttribute('width', width);
-document.getElementById('gold').setAttribute('height', height);
+document.getElementById('game').setAttribute('width', width);
+document.getElementById('game').setAttribute('height', height);
 
 // Golds
 const GOLD_NUM = 6;
 var golds = [];
 
+// Cutter
+var bladeAngular = 0;
+
 // Game
-const FINGER_RENDER_SIZE = Math.floor(Math.sqrt(0.002 * width * height));
+const CUTTER_RENDER_SIZE = Math.floor(Math.sqrt(0.005 * width * height));
+
+function update() {
+    cutterUpdate();
+    bladeAngular += CUTTER_BLADE_ANGULAR_VELOCITY * DEGREE;
+}
 
 function render() {
     ctx.clearRect(0, 0, width, height);
-    drawBackground();
+    // drawBackground();
     drawGold();
-    drawFinger();
+    drawCutter();
     displayScore();
     // If win
     if(golds.length == 0) {
-        win(userid, Finger.score);
+        win(userid, Cutter.score);
     }
 }
 
@@ -81,50 +90,50 @@ function drawGold() {
     }
 }
 
-function drawFinger() {
-    // Finger
-    let _angular = Math.sin(FINGER_ANGULAR_VELOCITY*DEGREE*Finger.t) * Math.PI * 0.5;
-    ctx.translate(Finger.headX, Finger.headY);
-    ctx.rotate(-_angular);
-    ctx.drawImage(fingerImg, -0.5 * FINGER_RENDER_SIZE, -0.5 * FINGER_RENDER_SIZE, FINGER_RENDER_SIZE, FINGER_RENDER_SIZE);
-    ctx.rotate(_angular);
-    ctx.translate(-Finger.headX, -Finger.headY);
+function drawCutter() {
+    // Cutter
+    ctx.translate(Cutter.headX, Cutter.headY);
+    ctx.rotate(-bladeAngular);
+    ctx.drawImage(cutterImg, -0.5 * CUTTER_RENDER_SIZE, -0.5 * CUTTER_RENDER_SIZE, CUTTER_RENDER_SIZE, CUTTER_RENDER_SIZE);
+    ctx.rotate(bladeAngular);
+    ctx.translate(-Cutter.headX, -Cutter.headY);
     // Line
     ctx.beginPath();
-    ctx.lineWidth = 2;
-    ctx.moveTo(Finger.x, Finger.y);
-    ctx.lineTo(Finger.headX, Finger.headY);
+    ctx.lineWidth = 3;
+    ctx.moveTo(Cutter.x, Cutter.y);
+    ctx.lineTo(Cutter.headX, Cutter.headY);
     ctx.stroke();
 }
 
 function displayScore() {
     ctx.font = Math.floor(0.05 * height) + 'px Ubuntu';
     ctx.fillStyle = "#7E5709";
-    ctx.fillText("Score:" + Finger.score, width * 0.02, height * 0.05);
+    ctx.fillText("Score:" + Cutter.score, width * 0.02, height * 0.05);
     ctx.font = Math.floor(0.025 * height) + 'px Ubuntu';
     ctx.fillText("userid: " + userid, width * 0.02, height * 0.085);
 }
 
 function startGame() {
     clearAllInterval()
-    fingerInit(width * 0.5, height * 0.15, distance(width * 0.5, height * 0.15, width, height) * 0.9);
+    cutterInit(width * 0.5, height * 0.15, distance(width * 0.5, height * 0.15, width, height) * 0.9, CUTTER_RENDER_SIZE * 0.4);
     golds = generateGold(width * 0.05, height * 0.3, width * 0.90, height * 0.7, GOLD_NUM);
     renderInterval = setInterval(render, 30);
-    updateInterval = setInterval(fingerUpdate, 30);
+    updateInterval = setInterval(update, 30);
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
+    if (userid == null) userid = "LLLLLogger";
 }
 
 // Get start
-Finger.score = 0;
+Cutter.score = 0;
 // Loading ...
 progressInterval = setInterval(function() {
     const MARGIN = 3;
-    ctx.fillStyle = "#C68017";
+    ctx.fillStyle = "#80C617";
     ctx.fillRect(width * 0.31, height * 0.44, width * 0.38, height * 0.12);
-    ctx.fillStyle = "#7E5709";
+    ctx.fillStyle = "#577E09";
     ctx.fillRect(width * 0.32, height * 0.46, width * 0.36, height * 0.08);
-    ctx.fillStyle = "#FFEA61";
+    ctx.fillStyle = "#EAFF61";
     // Use Math.max to avoid draw a rect with negative width.
     ctx.fillRect(width * 0.32 + MARGIN, height * 0.46 + MARGIN,
                  Math.max(0, width * 0.36 * (loadProgress / maxLoadProgress) - MARGIN * 2), height * 0.08 - MARGIN * 2);

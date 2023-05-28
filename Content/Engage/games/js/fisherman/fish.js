@@ -1,5 +1,7 @@
 // Fish (Edited from Gold)
 
+var fishMaxVelocity = 0.0;
+
 const FISH_STATUS = {
     IDLING: 1,
     WANDERING: 2,
@@ -21,8 +23,8 @@ class Fish {
      * Fish render width-height ratio
      * 
      * All fish appearances should satisfy `width = height * FISH_ASPECT_RATIO`.
+     * FISH_ASPECT_RATIO = 1.7566765578635015
      */
-    FISH_ASPECT_RATIO = 1.7566765578635015;
 
     /**
      * Create a new gold at (x, y) as its center point.
@@ -35,12 +37,12 @@ class Fish {
         this.x = x;
         this.y = y;
         this.height = height;
-        this.width = height * this.FISH_ASPECT_RATIO;
+        this.width = height * 1.7566765578635015;
         this.value = value;
         this.state = FISH_STATUS.IDLING;
         this.face = (Math.random() >= 0.5) ? FISH_FACETO.LEFT : FISH_FACETO.RIGHT;
         // Hitbox
-        this.hitbox = new AABBHitbox(this.x - this.width * 0.38, this.y - this.height * 0.38, this.width * 0.76, this.height * 0.76);
+        this.hitbox = new AABBHitbox(this.x - this.width * 0.42, this.y - this.height * 0.42, this.width * 0.84, this.height * 0.84);
     }
 
     /**
@@ -57,11 +59,6 @@ class Fish {
 }
 
 class FishIntelligence {
-    
-    /**
-     * A fish can speedup until it reaches this restriction.
-     */
-    fishMaxVelocity = 0.0;
 
     /**
      * Create a fish intelligence on some fish, this fish just wanders in given rect area.
@@ -120,7 +117,7 @@ class FishIntelligence {
                         x: Math.random() * (this.maxX - this.minX) + this.minX,
                         y: Math.random() * (this.maxY - this.minY) + this.minY
                     }
-                    this.moveTick = Math.ceil(this.distance() / FishIntelligence.fishMaxVelocity);
+                    this.moveTick = Math.ceil(this.distance() / fishMaxVelocity);
                     this.tick = this.moveTick;
                     this.holdsFish.state = FISH_STATUS.WANDERING;
                     this.holdsFish.face = (this.dest.x - this.start.x >= 0) ? FISH_FACETO.RIGHT : FISH_FACETO.LEFT;
@@ -172,14 +169,14 @@ function generateFish(rangeX, rangeY, rangeW, rangeH, number) {
     let base, height, value;
     let _fish;
     // Scale ratio: depending on game area
-    const FISH_HEIGHT_RATIO = Math.sqrt(0.016 * rangeW * rangeH) / 30;
+    const FISH_HEIGHT_RATIO = Math.sqrt(0.017 * rangeW * rangeH) / 30;
 
     // Set max velocity
-    FishIntelligence.fishMaxVelocity = Math.sqrt(rangeW * rangeH) / 133;
+    fishMaxVelocity = Math.sqrt(rangeW * rangeH) / 133;
 
     for(let i = 0; i < number; ++i) {
         // Scale & Value
-        base = Math.floor(Math.random() * 29.0 + 28.0);
+        base = Math.floor(Math.random() * 31.0 + 30.0);
         height = Math.floor(base * FISH_HEIGHT_RATIO);
         value = Math.floor(base * 16.0 + Math.random() * 9.0);
         // Place fish on map

@@ -42,7 +42,7 @@ document.getElementById('game').setAttribute('width', width);
 document.getElementById('game').setAttribute('height', height);
 
 // Fishes
-const FISH_NUM = 8;
+const FISH_NUM = 6;
 var fishes = [];
 
 // Game
@@ -63,7 +63,7 @@ function render() {
     displayScore();
     // If win
     if(fishes.length == 0) {
-        win(userid, Finger.score);
+        fishWin(userid, Finger.score);
     }
 }
 
@@ -110,21 +110,7 @@ function displayScore() {
     ctx.fillText("userid: " + userid, width * 0.02, height * 0.085);
 }
 
-function startGame() {
-    clearAllInterval()
-    fingerInit(width * 0.5, height * 0.15, distance(width * 0.5, height * 0.15, width, height) * 0.9);
-    fishes = generateFish(width * 0.1, height * 0.3, width * 0.8, height * 0.6, FISH_NUM);
-    renderInterval = setInterval(render, 30);
-    updateInterval = setInterval(update, 30);
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    if (userid == null) userid = "Fisher Man";
-}
-
-// Get start
-Finger.score = 0;
-// Loading ...
-progressInterval = setInterval(function() {
+function displayProgress() {
     const MARGIN = 3;
     ctx.fillStyle = "#1780C6";
     ctx.fillRect(width * 0.31, height * 0.44, width * 0.38, height * 0.12);
@@ -136,6 +122,69 @@ progressInterval = setInterval(function() {
                  Math.max(0, width * 0.36 * (loadProgress / maxLoadProgress) - MARGIN * 2), height * 0.08 - MARGIN * 2);
     ctx.stroke();
     if (loadProgress >= maxLoadProgress) {
-        startGame();
+        FishingXHR.send(null);
     }
-}, 30);
+}
+
+function startGame() {
+    clearAllInterval();
+    fingerInit(width * 0.5, height * 0.15, distance(width * 0.5, height * 0.15, width, height) * 0.9);
+    fishes = generateFish(width * 0.05, height * 0.3, width * 0.9, height * 0.65, FISH_NUM);
+    renderInterval = setInterval(render, 30);
+    updateInterval = setInterval(update, 30);
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    if (userid == null) userid = "Fisher Man";
+}
+
+// Get start
+Finger.score = 0;
+// Check rod
+var FishingXHR = new XMLHttpRequest();
+FishingXHR.open("GET", "http://81.68.140.151:7853/api/fishing/check?userid=" + userid, true);
+FishingXHR.onreadystatechange = function () {
+
+    let fadeTick = 150;
+    ctx.font = Math.floor(0.07 * height) + 'px Ubuntu';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = "#b1f5ff";
+
+    if (FishingXHR.readyState === 4) {
+        switch (FishingXHR.status) {
+            case 200:
+                // OK and load image resources
+                startGame();
+                break;
+            case 400:
+                // User does not have a rod
+                clearAllInterval();
+                (function fadingRodAlert() {
+                    ctx.clearRect(0, 0, width, height);
+                    drawBackground();
+                    ctx.fillStyle = "#b1f5ff" + Math.min(Math.ceil(fadeTick * 8.5), 255).toString(16);
+                    ctx.fillText("Please buy a fishing rod on shop at first!", width * 0.5, height * 0.5);
+                    ctx.fillText("Press F to exit.", width * 0.5, height * 0.6);
+                    --fadeTick;
+                    if (fadeTick <= 0) window.close();
+                    else setTimeout(fadingRodAlert, 30);
+                })();
+                break;
+            default:
+                // Connection error
+                clearAllInterval();
+                (function fadingConnectionAlert() {
+                    ctx.clearRect(0, 0, width, height);
+                    drawBackground();
+                    ctx.fillStyle = "#b1f5ff" + Math.min(Math.ceil(fadeTick * 8.5), 255).toString(16);
+                    ctx.fillText("Error: You has been disconnected from server.", width * 0.5, height * 0.5);
+                    ctx.fillText("Press F to exit.", width * 0.5, height * 0.6);
+                    --fadeTick;
+                    if (fadeTick <= 0) window.close();
+                    else setTimeout(fadingConnectionAlert, 30);
+                })();
+                break;
+        }
+    }
+}
+progressInterval = setInterval(displayProgress, 30);
