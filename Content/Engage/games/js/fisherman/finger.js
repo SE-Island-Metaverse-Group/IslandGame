@@ -13,8 +13,8 @@ var Finger = {
 };
 
 const DEGREE = Math.PI / 180;
-const FINGER_VELOCITY = 0.011;          // Ratio
-const FINGER_VELOCITY_SPEEDUP = 0.02;   // Pulling gold ratio
+const FINGER_VELOCITY = 0.012;          // Ratio
+const FINGER_VELOCITY_SPEEDUP = 0.021;  // Pulling gold ratio
 const FINGER_ANGULAR_VELOCITY = 1.75;
 const FINGER_STATUS = {
     IDLING: 1,

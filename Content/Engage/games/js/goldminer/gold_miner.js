@@ -1,4 +1,4 @@
-var ctx = document.getElementById('gold').getContext('2d');
+var ctx = document.getElementById('game').getContext('2d');
 var maxLoadProgress = 0;
 
 function registerImageResource(imagePath, onLoadCallback) {
@@ -38,8 +38,8 @@ function clearAllInterval() {
 // Window
 var width = window.innerWidth - 15;
 var height = window.innerHeight - 15;
-document.getElementById('gold').setAttribute('width', width);
-document.getElementById('gold').setAttribute('height', height);
+document.getElementById('game').setAttribute('width', width);
+document.getElementById('game').setAttribute('height', height);
 
 // Golds
 const GOLD_NUM = 6;
@@ -56,7 +56,7 @@ function render() {
     displayScore();
     // If win
     if(golds.length == 0) {
-        win(userid, Finger.score);
+        mineWin(userid, Finger.score);
     }
 }
 
@@ -105,21 +105,7 @@ function displayScore() {
     ctx.fillText("userid: " + userid, width * 0.02, height * 0.085);
 }
 
-function startGame() {
-    clearAllInterval()
-    fingerInit(width * 0.5, height * 0.15, distance(width * 0.5, height * 0.15, width, height) * 0.9);
-    golds = generateGold(width * 0.05, height * 0.3, width * 0.90, height * 0.7, GOLD_NUM);
-    renderInterval = setInterval(render, 30);
-    updateInterval = setInterval(fingerUpdate, 30);
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    if (userid == null) userid = "Gold Miner";
-}
-
-// Get start
-Finger.score = 0;
-// Loading ...
-progressInterval = setInterval(function() {
+function displayProgress() {
     const MARGIN = 3;
     ctx.fillStyle = "#C68017";
     ctx.fillRect(width * 0.31, height * 0.44, width * 0.38, height * 0.12);
@@ -131,6 +117,69 @@ progressInterval = setInterval(function() {
                  Math.max(0, width * 0.36 * (loadProgress / maxLoadProgress) - MARGIN * 2), height * 0.08 - MARGIN * 2);
     ctx.stroke();
     if (loadProgress >= maxLoadProgress) {
-        startGame();
+        MiningXHR.send(null);
     }
-}, 30);
+}
+
+function startGame() {
+    clearAllInterval();
+    fingerInit(width * 0.5, height * 0.15, distance(width * 0.5, height * 0.15, width, height) * 0.9);
+    golds = generateGold(width * 0.05, height * 0.3, width * 0.90, height * 0.7, GOLD_NUM);
+    renderInterval = setInterval(render, 30);
+    updateInterval = setInterval(fingerUpdate, 30);
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    if (userid == null) userid = "Gold Miner";
+}
+
+// Get start
+Finger.score = 0;
+// Check rod
+var MiningXHR = new XMLHttpRequest();
+MiningXHR.open("GET", "http://81.68.140.151:7853/api/mining/check?userid=" + userid, true);
+MiningXHR.onreadystatechange = function () {
+
+    let fadeTick = 150;
+    ctx.font = Math.floor(0.07 * height) + 'px Ubuntu';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = "#fff5b1";
+
+    if (MiningXHR.readyState === 4) {
+        switch (MiningXHR.status) {
+            case 200:
+                // OK and load image resources
+                startGame();
+                break;
+            case 400:
+                // User does not have a rod
+                clearAllInterval();
+                (function fadingRodAlert() {
+                    ctx.clearRect(0, 0, width, height);
+                    drawBackground();
+                    ctx.fillStyle = "#fff5b1" + Math.min(Math.ceil(fadeTick * 8.5), 255).toString(16);
+                    ctx.fillText("Please buy a pickaxe on shop at first!", width * 0.5, height * 0.5);
+                    ctx.fillText("Press F to exit.", width * 0.5, height * 0.6);
+                    --fadeTick;
+                    if (fadeTick <= 0) window.close();
+                    else setTimeout(fadingRodAlert, 30);
+                })();
+                break;
+            default:
+                // Connection error
+                clearAllInterval();
+                (function fadingConnectionAlert() {
+                    ctx.clearRect(0, 0, width, height);
+                    drawBackground();
+                    ctx.fillStyle = "#fff5b1" + Math.min(Math.ceil(fadeTick * 8.5), 255).toString(16);
+                    ctx.fillText("Error: You has been disconnected from server.", width * 0.5, height * 0.5);
+                    ctx.fillText("Press F to exit.", width * 0.5, height * 0.6);
+                    --fadeTick;
+                    if (fadeTick <= 0) window.close();
+                    else setTimeout(fadingConnectionAlert, 30);
+                })();
+                break;
+        }
+    }
+}
+progressInterval = setInterval(displayProgress, 30);
