@@ -71,7 +71,7 @@ function fishWin(playerUserID, score) {
         drawBackground();
 
         if (xhr.readyState === 4) {
-            if (xhr.status === 201) {
+            if (xhr.status === 200 || xhr.status === 201) {
                 var info = xhr.responseText;
                 // var obj = JSON.parse(info);
                 // Document Interface
