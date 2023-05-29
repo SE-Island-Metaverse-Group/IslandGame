@@ -160,7 +160,7 @@
                             '<img src="./assets/' + name + '.png" alt="' + name + '">' +
                             '<h3>' + itemName + '</h3>' +
                             '<p>售价：' + info.price + '元</p>' +
-                            '<p>回收价：' + Math.round(info.price / 2) + '元</p>' +
+                            //'<p>回收价：' + Math.round(info.price / 2) + '元</p>' +
                             '<p>库存：' + info.stock + '</p>' +
                             '<input class="amount-input" type="number" min="" max="' + info.stock + '" value="0">' +
                             '<button data-name="' + name + '" data-price="' + info.price + '">加入购物车</button>' +
@@ -191,9 +191,12 @@
                 var price = parseInt($(this).data('price'));
                 var stock = parseInt($(this).siblings('p:contains("库存")').text().match(/\d+/)[0]);
                 var amount = parseInt($(this).siblings('.amount-input').val());
-                if (isNaN(amount)) {
+                if (isNaN(amount) ) {
                     alert('请输入有效的购买数量！');
                     return;
+                }
+                if (amount <= 0) {
+                    alert('购买数量必须为正')
                 }
                 // if (amount > stock) {
                 //     alert('库存不足！');

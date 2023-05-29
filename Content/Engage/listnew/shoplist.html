@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>商店页面</title>
+	<style>
+		.container {
+			display: flex;
+			flex-direction: row;
+			align-items: flex-start;
+		}
+		
+		.left {
+			flex-grow: 1;
+			padding-right: 20px;
+		}
+
+		.right {
+			width: 300px;
+			padding-left: 20px;
+			border-left: 1px solid #ccc;
+		}
+		
+		h2 {
+			margin-top: 0;
+			margin-bottom: 10px;
+		}
+		
+		.product-list {
+			list-style: none;
+			padding: 0;
+			margin: 0;
+		}
+		
+		.product {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			margin-bottom: 20px;
+		}
+		
+		.product img {
+			max-width: 100px;
+			height: auto;
+		}
+		
+		.cart {
+			list-style: none;
+			padding: 0;
+			margin: 0;
+		}
+		
+		.cart-item {
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			margin-bottom: 10px;
+			font-size: 14px;
+		}
+		
+		.cart-item img {
+			max-width: 40px;
+			height: auto;
+			margin-right: 10px;
+		}
+		
+		.cart-item .name {
+			flex-grow: 1;
+		}
+		
+		.cart-item .price {
+			font-weight: bold;
+		}
+
+        .total-price {
+            list-style: none;
+			padding: 0;
+			margin: 0;
+        }
+	</style>
+	<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+	<script>
+		$(function() {
+
+            var userList = {};
+            var shopList = {};
+
+			var userId = getParameterByName('userid'); // 从 URL 中获取 userid 参数
+			if (userId) { // 如果 userid 存在，则通过 API 请求获取用户资产信息
+				$.ajax({
+					url: 'http://81.68.140.151:7853/api/profile?userid=' + userId,
+					type: 'GET',
+					success: function(data) {
+						console.log(data);
+						// 将返回的数据更新到页面上
+						$('#id').html(userId);
+						$('#balance').html(data.balance);
+						$('#diamond').html(data.commodity.diamond);
+						$('#axe').html(data.commodity.axe);
+						$('#pickaxe').html(data.commodity.pickaxe);
+						$('#fishingrod').html(data.commodity.fishingrod);
+						$('#beer').html(data.commodity.beer);
+						$('#soda').html(data.commodity.soda);
+						$('#hamburger').html(data.commodity.hamburger);
+						$('#cola').html(data.commodity.cola);
+                        $('#fish').html(data.commodity.fish);
+                        userList[userId] = {
+                            balance: data.balance,
+                            commodity: {
+                            diamond: data.commodity.diamond,
+                            axe: data.commodity.axe,
+                            pickaxe: data.commodity.pickaxe,
+                            fishingrod: data.commodity.fishingrod,
+                            beer: data.commodity.beer,
+                            soda: data.commodity.soda,
+                            hamburger: data.commodity.hamburger,
+                            cola: data.commodity.cola,
+                            fish: data.commodity.fish
+                            }
+                        };
+                        console.log(userList);
+					},
+					error: function(xhr, textStatus, errorThrown) {
+						console.log(xhr.responseText);
+					}
+				});
+			}
+
+			$.ajax({ // 向后端发送 GET 请求获取商品列表数据
+				url: 'http://81.68.140.151:7853/api/shop/list',
+				type: 'GET',
+				success: function(data) {
+					console.log(data);
+					// 将返回的商品列表数据动态添加到页面上
+					$.each(data, function(name, info) {
+                        //中文名称
+                        var itemName = "";
+                        if (name === "diamond") {
+                            itemName = "钻石";
+                        } else if (name === "axe") {
+                            itemName = "斧头";
+                        } else if (name === "pickaxe") {
+                            itemName = "镐";
+                        } else if (name === "fishingrod") {
+                            itemName = "鱼竿";
+                        } else if (name === "beer") {
+                            itemName = "啤酒";
+                        } else if (name === "soda") {
+                            itemName = "苏打水";
+                        } else if (name === "hamburger") {
+                            itemName = "汉堡";
+                        } else if (name === "cola") {
+                            itemName = "可乐";
+                        }
+                        shopList[name] = {
+                            price: info.price,
+                            stock: info.stock,
+                            name: itemName
+                        };
+						var itemHtml = '<li class="product">' +
+                            '<img src="./assets/' + name + '.png" alt="' + name + '">' +
+                            '<h3>' + itemName + '</h3>' +
+                            '<p>售价：' + info.price + '元</p>' +
+                            '<p>回收价：' + Math.round(info.price / 2) + '元</p>' +
+                            '<p>库存：' + info.stock + '</p>' +
+                            '<input class="amount-input" type="number" min="" max="' + info.stock + '" value="0">' +
+                            '<button data-name="' + name + '" data-price="' + info.price + '">加入购物车</button>' +
+                            '</li>';
+                        $('.product-list').append(itemHtml);
+                    });
+				},
+				error: function(xhr, textStatus, errorThrown) {
+					console.log(xhr.responseText);
+				}
+			});
+
+			function getParameterByName(name, url) { // 获取 URL 中的参数值
+				if (!url) url = window.location.href;
+				name = name.replace(/[\[\]]/g, '\\$&');
+				var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+					results = regex.exec(url);
+				if (!results) return null;
+				if (!results[2]) return '';
+				return decodeURIComponent(results[2].replace(/\+/g, ' '));
+			}
+
+			var itemList = {};
+
+            $('.product-list').on('click', 'button', function() { // 点击“加入购物车”按钮的事件处理函数
+                console.log(itemList);
+                var name = $(this).data('name');
+                var price = parseInt($(this).data('price'));
+                var stock = parseInt($(this).siblings('p:contains("库存")').text().match(/\d+/)[0]);
+                var amount = parseInt($(this).siblings('.amount-input').val());
+                if (isNaN(amount)) {
+                    alert('请输入有效的购买数量！');
+                    return;
+                }
+                // if (amount > stock) {
+                //     alert('库存不足！');
+                //     return;
+                // }
+                if (itemList.hasOwnProperty(name)) {
+                    if(amount + itemList[name].amount > shopList[name].stock) {
+                        alert('库存不足！');
+                        return;
+                    }
+                    else if (amount < 0 && (userList[userId].commodity[name] + amount + itemList[name].amount < 0)) {
+                        alert('个人资产不足！');
+                        return;
+                    }                    
+                    else if(amount + itemList[name].amount > 0) {
+                        itemList[name].amount += amount;
+                        itemList[name].totalPrice = price * itemList[name].amount;
+                    }
+                    else if(amount + itemList[name].amount == 0) {
+                        delete itemList[name];
+                    }
+                    else {
+                        itemList[name].amount += amount;
+                        itemList[name].totalPrice = price * itemList[name].amount * 0.5;
+                    } }
+                else {
+                    if (amount < 0 && (userList[userId].commodity[name] + amount < 0)) {
+                        alert('个人资产不足！');
+                        return;
+                    }
+                    else if (amount < 0 ) {
+                        itemList[name] = {
+                        amount: amount,
+                        price: price,
+                        totalPrice: price * amount * 0.5
+                    }}
+                    else {
+                        itemList[name] = {
+                        amount: amount,
+                        price: price,
+                        totalPrice: price * amount
+                    }
+                    };                                       
+                }
+                renderCart();
+                updateTotalPrice();
+            });
+
+            $('.cart').on('click', '.remove-btn', function() { // 删除商品的事件处理函数
+                var name = $(this).closest('.cart-item').data('name');
+                delete itemList[name];
+                renderCart();
+                updateTotalPrice();
+            });
+
+            $('#checkout').click(function() { // 点击“结算”按钮的事件处理函数
+                var userId = $('#userId').val();
+                //var cartItems = cart.getCartItems();
+                //var totalCost = cart.getTotalCost();
+                var userBalance = userList[userId];
+
+                if (Object.keys(itemList).length === 0) {
+                    alert('购物车为空！');
+                    return;
+                } 
+                else {
+                    var totalPrice = 0;
+                    for (var name in itemList) {
+                        totalPrice += itemList[name].totalPrice;
+                    }
+                    if (totalPrice > userBalance) {
+                    alert('余额不足!');
+                    return;
+                    }
+                    // 构造请求体
+                    var requestBody = {
+                        userid: getParameterByName('userid')
+                    };
+                    $.each(itemList, function(name, count) {
+                        requestBody[name] = itemList[name].amount;
+                    });
+                    console.log(requestBody);
+                    if (!confirm('您本次购物的总价为' + totalPrice + '元，确认要购买吗？')) return;
+                    
+                    // 发送结算请求
+                    $.ajax({
+                        url: 'http://81.68.140.151:7853/api/spot/transaction',
+                        type: 'POST',
+                        contentType: 'application/x-www-form-urlencoded',
+                        data: requestBody,
+                        success: function(data) {
+                        alert('购买成功！');
+                        // 更新用户资产信息和商店列表信息
+                        itemList = {};
+                        //updateUserListAndShopList(userId);
+                        renderCart();
+                        location.reload();
+                        },
+                        error: function() {
+                        alert('结算失败，请稍后再试');
+                        }
+                    });
+                    }                
+            });
+
+            function renderCart() { // 渲染购物车
+                $('.cart').empty();
+                $('.total-price').html('0元');
+                for (var name in itemList) {
+                    if(itemList[name].amount >= 0){
+                        var itemHtml = '<li class="cart-item" data-name="' + name + '">' +
+                            '<img src="./assets/' + name + '.png" alt="' + name + '">' +
+                            '<div class="name">' + name + '</div>' +
+                            '<div class="price">' + itemList[name].price + '元 × ' + itemList[name].amount + '</div>' +
+                            '<button class="remove-btn">删除</button>' +
+                            '</li>';
+                        $('.cart').append(itemHtml);
+                    }
+                    else {
+                        var itemHtml = '<li class="cart-item" data-name="' + name + '">' +
+                            '<img src="./assets/' + name + '.png" alt="' + name + '">' +
+                            '<div class="name">' + name + '</div>' +
+                            '<div class="price">' + 0.5 * itemList[name].price + '元 × ' + itemList[name].amount + '</div>' +
+                            '<button class="remove-btn">删除</button>' +
+                            '</li>';
+                        $('.cart').append(itemHtml);
+                    }
+                }
+                updateTotalPrice();
+            }
+
+
+            function updateTotalPrice() { // 更新总价并显示
+                var totalPrice = 0;
+                for (var name in itemList) {
+                    totalPrice += itemList[name].totalPrice;
+                }
+                $('.total-price').html(totalPrice + '元');
+            }
+		});
+	</script>
+</head>
+<body>
+	<div class="container">
+		<div class="left">
+			<h2>商品列表</h2>
+			<ul class="product-list">
+				<!-- 动态添加的商品项 -->
+			</ul>
+		</div>
+		<div class="right">
+			<h2>用户资产</h2>
+            <p>用户名：<span id="id">0</span></p>
+			<p>余额：<span id="balance">0</span>元</p>
+			<p>钻石：<span id="diamond">0</span></p>
+			<p>斧头：<span id="axe">0</span></p>
+			<p>镐：<span id="pickaxe">0</span></p>
+			<p>鱼竿：<span id="fishingrod">0</span></p>
+			<p>啤酒：<span id="beer">0</span></p>
+			<p>苏打水：<span id="soda">0</span></p>
+			<p>汉堡：<span id="hamburger">0</span></p>
+			<p>可乐：<span id="cola">0</span></p>
+            <p>鱼：<span id="fish">0</span></p>
+			<h2>购物清单</h2>
+			<ul class="cart">
+				<!-- 购物车中的商品项动态添加 -->
+			</ul>
+			<p>总价：<span class="total-price"> </span></p>
+			<button id="checkout">结算</button>
+		</div>
+	</div>
+</body>
+</html>

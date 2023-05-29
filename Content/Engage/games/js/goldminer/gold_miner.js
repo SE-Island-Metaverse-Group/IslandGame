@@ -100,7 +100,7 @@ function drawFinger() {
 function displayScore() {
     ctx.font = Math.floor(0.05 * height) + 'px Ubuntu';
     ctx.fillStyle = "#7E5709";
-    ctx.fillText("Score:" + Finger.score, width * 0.02, height * 0.05);
+    ctx.fillText("Score:" + Math.floor(Finger.score), width * 0.02, height * 0.05);
     ctx.font = Math.floor(0.025 * height) + 'px Ubuntu';
     ctx.fillText("userid: " + userid, width * 0.02, height * 0.085);
 }

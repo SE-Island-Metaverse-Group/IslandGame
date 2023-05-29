@@ -139,7 +139,8 @@ function fingerUpdate() {
                 Finger.state = FINGER_STATUS.IDLING;
                 // If finger holds a gold, release it and exchange for score
                 if(Finger.held > -1) {
-                    Finger.score += fishes[Finger.held].holdsFish.value;
+                    // Finger.score += fishes[Finger.held].holdsFish.value;
+                    Finger.score += 1;  // Get one fish
                     fishes.splice(Finger.held, 1);
                     Finger.held = -1;
                 }
